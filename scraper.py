@@ -1,15 +1,20 @@
 #pip install selenium
-from selenium import webdriver
+from time import sleep
+
 #pip install pandas
 import pandas as pd
-from time import sleep
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 #pip install twilio
 from twilio.rest import Client
+from webdriver_manager.chrome import ChromeDriverManager
+
 
 #start up the webdriver and create a dataframe
 class VirusBot():
     def __init__(self):
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
         #define csv file columns
         columns = ['total_cases', 'new_cases', 'total_deaths', 'new_deaths','active_cases', 'total_recovered', 'serious_critical']
         self.df = pd.DataFrame(columns=columns)
@@ -19,11 +24,11 @@ class VirusBot():
         #telling the driver what web page to open
         website = self.driver.get('https://worldometers.info/coronavirus/')
         #storing the table element in a variable
-        table = self.driver.find_element_by_xpath('//*[@id="main_table_countries_today"]')
+        table = self.driver.find_element(By.XPATH, '//*[@id="main_table_countries_today"]')
         #specifying what country you want to analyze
-        country = table.find_element_by_xpath("//td[contains(., 'USA')]")
+        country = table.find_element(By.XPATH, "//td[contains(., 'USA')]")
         #specifying the country row
-        row = country.find_element_by_xpath("./..")
+        row = country.find_element(By.XPATH, "./..")
         #formatting the columns
         cell = row.text.split(" ")
 
@@ -39,14 +44,14 @@ class VirusBot():
         serious_critical = cell[8]
 
         #append results to columns in dataframe
-        self.df = self.df.append(
-            {'total_cases': total_cases,
-            'new_cases': new_cases,
-            'total_deaths': total_deaths,
-            'new_deaths': new_deaths,
-            'active_cases': active_cases,
-            'total_recovered': total_recovered,
-            'serious_critical': serious_critical}, ignore_index=True)
+        self.df = pd.DataFrame(
+            {'total_cases': [total_cases],
+            'new_cases': [new_cases],
+            'total_deaths': [total_deaths],
+            'new_deaths': [new_deaths],
+            'active_cases': [active_cases],
+            'total_recovered': [total_recovered],
+            'serious_critical': [serious_critical]})
 
     #export function to create the CSV file
     def scrape_to_csv(self):
